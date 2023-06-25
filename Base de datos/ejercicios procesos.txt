@@ -1,0 +1,88 @@
+DELIMITER //
+
+
+
+
+CREATE TRIGGER N_depas AFTER INSERT ON departamentos
+FOR EACH ROW
+BEGIN
+  DECLARE numero_depas INT;
+  SELECT COUNT(*) INTO numero_depas FROM departamentos; 
+  SELECT CONCAT('Numero de depas ', CAST(numero_depas AS CHAR)) AS contador
+END 
+
+
+
+
+
+
+
+//
+DELIMITER ;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+--Tarea 
+
+--(1)Cantidad de materias por determinado prof en determinado tiempo 
+
+DELIMITER //
+
+CREATE PROCEDURE O_Materia_Prof(
+    IN profesor_nombre VARCHAR(50),
+    IN fecha_inicio DATE,
+    IN fecha_fin DATE
+)
+BEGIN
+    SELECT p.nom_prof AS profesor, COUNT(mp.materia) AS cantidad_materias
+    FROM profesores p
+    JOIN materia_profesor mp ON p.id_prof = mp.profesor
+    JOIN inscripciones i ON mp.materia = i.materia
+    WHERE p.nom_prof like concat('%',profesor_nombre,'%')
+    AND i.fecha BETWEEN fecha_inicio AND fecha_fin
+    GROUP BY p.nom_prof;
+END //
+
+DELIMITER ;
+
+
+--(2)Que materias cursa actualmente x alumno
+
+--(3)Crear procedimiento que inserte un alumno a la vez que lo inscribe en una clase 
+
+--(4) PA para actualizar datos
+
+--(5)PA que devuelva un reporte de inscripciones X alumno
+
+--(6) PA que devuelva la plantilla de empleados en X departamento 
+
+--(7)PA que devuelve la cantidad de empleados por departamento
+
+--(8)Cantidad de inscripciones en X periodo
+
+

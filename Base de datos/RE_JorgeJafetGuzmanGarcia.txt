@@ -1,0 +1,424 @@
+1.Primero entramos como andministrador
+{
+C:\Users\JORGE>cd ..
+
+C:\Users>cd ..
+
+C:\>cd xampp
+
+C:\xampp>cd mysql
+
+C:\xampp\mysql>cd bin
+
+C:\xampp\mysql\bin>mysql -u jorge -p
+Enter password: 
+} 
+
+1.1.Despues dentro de administrador creamos el usuario con contraseña, 
+creamos la base de datos donde va a estar trabajando el 'personal',para posterior mente darle los permisos necesarios en esa base de datos especifica, y aplicacmos los cambios con flush privileges. 
+{
+MariaDB [(none)]> CREATE USER 'personal'@'localhost' IDENTIFIED BY '1234';
+Query OK, 0 rows affected (0.003 sec)
+
+MariaDB [(none)]> CREATE DATABASE registro_escuela;
+Query OK, 0 rows affected (0.004 sec)
+
+MariaDB [(none)]> GRANT ALL PRIVILEGES ON registro_escuela.* TO 'personal'@'localhost';
+Query OK, 0 rows affected (0.004 sec)
+
+MariaDB [(none)]> FLUSH PRIVILEGES;
+}
+
+2.abrimos otra terminal e iniciamos sesion con el perfil de 'personal', usamos la base de datos asignada y comenzamos a crear las tablas y entrelazarlas 
+{
+C:\xampp\mysql\bin>mysql -u personal -p
+Enter password: ****
+
+MariaDB [(none)]> use registro_escuela;
+MariaDB [registro_escuela]> CREATE TABLE materias (
+    ->   cve_mat INT primary key,
+    ->   nom_mat VARCHAR(50),
+    ->   objetivo VARCHAR(100),
+    ->   creditos INT,
+    ->   num_unidades INT,
+    ->   costo DECIMAL(8,2)
+    -> );
+Query OK, 0 rows affected (0.041 sec)
+
+MariaDB [registro_escuela]> CREATE TABLE profesores (
+    ->   id_prof INT primary key,
+    ->   nom_prof VARCHAR(50),
+    ->   correo_prof VARCHAR(50),
+    ->   especialidad VARCHAR(50)
+    -> );
+Query OK, 0 rows affected (0.020 sec)
+
+MariaDB [registro_escuela]> CREATE TABLE materia_profesor (
+    ->   reg INT PRIMARY KEY,
+    ->   materia INT,
+    ->   profesor INT,
+    ->   cuatrimestre VARCHAR(10),
+    ->   FOREIGN KEY (materia) REFERENCES materias(cve_mat),
+    ->   FOREIGN KEY (profesor) REFERENCES profesores(id_prof)
+    -> );
+Query OK, 0 rows affected (0.077 sec)
+}
+
+3. Insertamos las duplas a las tablas
+{
+MariaDB [registro_escuela]> INSERT INTO materias (cve_mat, nom_mat, objetivo, creditos, num_unidades, costo)
+    -> VALUES
+    -> (1, 'Matemáticas', 'Aprender conceptos matemáticos avanzados', 4, 6, 150.00),
+    -> (2, 'Historia', 'Estudiar eventos históricos importantes', 3, 5, 100.00),
+    -> (3, 'Biología', 'Explorar el mundo de los seres vivos', 5, 7, 200.00),
+    -> (4, 'Química', 'Comprender las propiedades de los elementos químicos', 4, 6, 150.00),
+    -> (5, 'Inglés', 'Mejorar las habilidades de comunicación en inglés', 3, 4, 120.00);
+Query OK, 5 rows affected (0.007 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+MariaDB [registro_escuela]> INSERT INTO profesores (id_prof, nom_prof, correo_prof, especialidad)
+    -> VALUES
+    -> (1, 'Juan Pérez', 'juan@example.com', 'Matemáticas'),
+    -> (2, 'María López', 'maria@example.com', 'Historia'),
+    -> (3, 'Carlos Ramírez', 'carlos@example.com', 'Biología'),
+    -> (4, 'Ana Torres', 'ana@example.com', 'Química'),
+    -> (5, 'Laura Sánchez', 'laura@example.com', 'Inglés'),
+    -> (6, 'Pedro Gómez', 'pedro@example.com', 'Física');
+Query OK, 6 rows affected (0.008 sec)
+Records: 6  Duplicates: 0  Warnings: 0
+
+MariaDB [registro_escuela]> INSERT INTO materia_profesor (reg, materia, profesor, cuatrimestre)
+    -> VALUES
+    -> (1, 1, 1, 'Primer Cuatrimestre'),
+    -> (2, 2, 2, 'Segundo Cuatrimestre'),
+    -> (3, 3, 3, 'Tercer Cuatrimestre'),
+    -> (4, 4, 4, 'Cuarto Cuatrimestre'),
+    -> (5, 5, 5, 'Primer Cuatrimestre'),
+    -> (6, 1, 2, 'Segundo Cuatrimestre'),
+    -> (7, 2, 3, 'Tercer Cuatrimestre'),
+    -> (8, 3, 4, 'Cuarto Cuatrimestre'),
+    -> (9, 4, 5, 'Primer Cuatrimestre'),
+    -> (10, 5, 6, 'Segundo Cuatrimestre');
+Query OK, 10 rows affected, 10 warnings (0.014 sec)
+Records: 10  Duplicates: 0  Warnings: 10
+}
+
+
+Ejercicio de tarea... Continuacion
+
+4.1. complemntamos el SBD con tablas de alumnos e inscripciones, la matricula empieza en 202300 y el registro en 10000, y con sus llaves primarias y foraneas
+{
+MariaDB [registro_escuela]> CREATE TABLE alumnos (
+    ->   matricula INT PRIMARY KEY AUTO_INCREMENT,
+    ->   nombre VARCHAR(50),
+    ->   correo NCHAR(50),
+    ->   celular VARCHAR(15)
+    -> ) AUTO_INCREMENT = 20300;
+Query OK, 0 rows affected (0.018 sec)
+
+MariaDB [registro_escuela]> CREATE TABLE inscripciones (
+    ->   registro INT PRIMARY KEY AUTO_INCREMENT,
+    ->   fecha DATE,
+    ->   alumno INT,
+    ->   materia INT,
+    ->   FOREIGN KEY (alumno) REFERENCES alumnos(matricula),
+    ->   FOREIGN KEY (materia) REFERENCES materias(cve_mat)
+    -> ) AUTO_INCREMENT = 10000;
+Query OK, 0 rows affected (0.050 sec)
+}
+
+4.2.para que el usuario personal pueda crear el usuario 'Director' se le tiene que dar permisos desde el admin y despues recargar
+{
+MariaDB [(none)]> GRANT CREATE USER, GRANT OPTION ON *.* TO 'personal'@'localhost';
+Query OK, 0 rows affected (0.005 sec)
+
+MariaDB [(none)]> flush privileges
+    -> ;
+Query OK, 0 rows affected (0.002 sec)
+} 
+
+5.Una vez echo esto se ingresara nuevamente a 'personal' y ya podra crear el usuario y dar permisos, primero de la base de datos y despues para crear usuarios
+{
+C:\xampp\mysql\bin>mysql -u personal -p
+Enter password: ****
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 59
+Server version: 10.4.28-MariaDB mariadb.org binary distribution
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [(none)]> use registro_escuela;
+Database changed
+MariaDB [registro_escuela]> CREATE USER 'director'@'localhost' IDENTIFIED BY '1234';
+Query OK, 0 rows affected (0.004 sec)
+
+MariaDB [registro_escuela]> GRANT ALL PRIVILEGES ON registro_escuela.* TO 'director'@'localhost';
+Query OK, 0 rows affected (0.004 sec)
+
+MariaDB [registro_escuela]> GRANT CREATE USER, GRANT OPTION ON *.* TO 'director'@'localhost';
+Query OK, 0 rows affected (0.004 sec)
+}
+
+6. una vez con permisos el 'director' para crear un usuario 'asistente', y se le insertaran los privilegios select e insert 
+{
+C:\xampp\mysql\bin>mysql -u director -p
+Enter password: ****
+
+MariaDB [(none)]> create user 'asistente'@'localhost' identified by '1234';
+Query OK, 0 rows affected (0.004 sec)
+
+MariaDB [(none)]> Grant insert,select on registro_escuela.* to 'asistente'@'localhost';
+Query OK, 0 rows affected (0.004 sec)
+
+}
+
+7.Ingresamos desde asistente para crear 5 alumnos y 10 inscripciones de manera habitual, abriendo otra terminal
+{
+C:\xampp\mysql\bin>mysql -u asistente -p
+Enter password: ****
+MariaDB [(none)]> use registro_escuela
+Database changed
+MariaDB [registro_escuela]> INSERT INTO alumnos ( nombre, correo, celular) VALUES
+    -> ( 'Juan Pérez', 'juan@example.com', '1234567890'),
+    -> ( 'María López', 'maria@example.com', '9876543210'),
+    -> ( 'Pedro Gómez', 'pedro@example.com', '5678901234'),
+    -> ( 'Ana Rodríguez', 'ana@example.com', '4567890123'),
+    -> ( 'Luisa García', 'luisa@example.com', '8901234567');
+Query OK, 5 rows affected (0.004 sec)
+Records: 5  Duplicates: 0  Warnings: 0
+
+MariaDB [registro_escuela]> INSERT INTO inscripciones ( fecha, alumno, materia) VALUES
+    -> ( '2023-06-01', 20300,  1),
+    -> ( '2023-06-02', 20301, 2),
+    -> ( '2023-06-03', 20302, 3),
+    -> ( '2023-06-04', 20303, 4),
+    -> ( '2023-06-05', 20304, 5),
+    -> ( '2023-06-06', 20300, 3),
+    -> ( '2023-06-07', 20301, 2),
+    -> ( '2023-06-08', 20302, 4),
+    -> ( '2023-06-09', 20303, 1),
+    -> ( '2023-06-10', 20304, 3);
+Query OK, 10 rows affected (0.005 sec)
+Records: 10  Duplicates: 0  Warnings: 0
+}
+
+
+
+
+
+
+
+
+
+
+
+
+Consultas
+
+1.
+{
+SELECT i.fecha, i.alumno, i.materia, mp.cuatrimestre, p.nom_prof
+FROM inscripciones i
+INNER JOIN materia_profesor mp ON i.materia = mp.materia
+INNER JOIN profesores p ON mp.profesor = p.id_prof
+WHERE i.fecha BETWEEN '2023-06-01' AND '2023-06-03';
+}
+
+2.
+{
+SELECT m.nom_mat, m.creditos, mp.cuatrimestre, p.nom_prof
+FROM materias m
+INNER JOIN materia_profesor mp ON m.cve_mat = mp.materia
+INNER JOIN profesores p ON mp.profesor = p.id_prof
+WHERE m.cve_mat IN (
+    SELECT materia
+    FROM inscripciones
+    WHERE alumno = '20300');
+}
+
+
+
+
+
+
+
+3.
+{
+SELECT p.nom_prof, COUNT(mp.materia) AS cantidad_materias
+FROM profesores p
+LEFT JOIN materia_profesor mp ON p.id_prof = mp.profesor
+GROUP BY p.nom_prof;
+}
+
+
+4.
+{
+SELECT i.materia, COUNT(DISTINCT i.alumno) AS cantidad_alumnos
+FROM inscripciones i
+WHERE i.fecha BETWEEN '2023-06-01' AND '2023-06-03'
+GROUP BY i.materia;
+}
+
+
+5.
+{
+SELECT m.nom_mat, m.creditos, mp.cuatrimestre, p.nom_prof
+FROM materias m
+INNER JOIN materia_profesor mp ON m.cve_mat = mp.materia
+INNER JOIN profesores p ON mp.profesor = p.id_prof
+WHERE m.cve_mat IN (
+    SELECT materia
+    FROM inscripciones
+    WHERE alumno = 'matricula_alumno');
+
+}
+
+6.
+{
+SELECT alumnos.matricula, alumnos.nombre
+FROM inscripciones
+INNER JOIN alumnos ON inscripciones.alumno = alumnos.matricula
+WHERE inscripciones.materia = 1;
+}
+
+7.
+{
+SELECT m.nom_mat, m.objetivo, m.creditos, mp.cuatrimestre
+FROM materias m
+INNER JOIN materia_profesor mp ON m.cve_mat = mp.materia
+WHERE mp.profesor = 1;
+}
+
+8.
+{
+SELECT a.matricula, a.nombre AS alumno
+FROM alumnos a
+WHERE a.matricula NOT IN (
+    SELECT alumno
+    FROM inscripciones
+    WHERE materia = '20300');
+}
+
+9.
+{
+SELECT m.cve_mat, m.nom_mat, m.creditos
+FROM materias m
+INNER JOIN materia_profesor mp ON m.cve_mat = mp.materia
+WHERE mp.cuatrimestre= 'Primer Cua';
+
+}
+
+10.
+
+{
+SELECT p.nom_prof AS profesor, mp.materia AS materia, COUNT(DISTINCT i.alumno) AS cantidad_alumnos
+FROM profesores p
+INNER JOIN materia_profesor mp ON p.id_prof = mp.profesor
+LEFT JOIN inscripciones i ON mp.materia = i.materia
+WHERE p.id_prof = '1' AND mp.materia = '1'
+GROUP BY p.nom_prof, mp.materia;
+}
+
+
+
+
+
+
+
+consultas 2
+
+1
+{
+SELECT m.nom_mat
+FROM materias m
+INNER JOIN materia_profesor mp ON m.cve_mat = mp.materia
+INNER JOIN profesores p ON p.id_prof = mp.profesor
+WHERE p.id_prof = 1;
+}
+
+2
+{
+SELECT p.nom_prof, COUNT(mp.materia) AS cantidad_materias
+FROM profesores p
+LEFT JOIN materia_profesor mp ON p.id_prof = mp.profesor
+GROUP BY p.nom_prof;
+}
+
+3
+{
+SELECT m.nom_mat
+FROM materias m
+INNER JOIN materia_profesor mp ON m.cve_mat = mp.materia
+GROUP BY m.nom_mat
+HAVING COUNT(DISTINCT mp.profesor) > 2;
+}
+
+4
+{
+SELECT *
+FROM materias
+WHERE costo = (SELECT MIN(costo) FROM materias);
+}
+
+
+
+5
+{
+SELECT m.nom_mat
+FROM materias m
+WHERE m.cve_mat NOT IN (
+    SELECT i.materia
+    FROM inscripciones i
+    WHERE i.alumno = 1);
+}
+
+6
+{
+SELECT a.nombre
+FROM alumnos a
+INNER JOIN inscripciones i ON a.matricula = i.alumno
+GROUP BY a.nombre
+HAVING COUNT(i.materia) > 3;
+}
+
+7
+{
+SELECT p.nom_prof
+FROM profesores p
+LEFT JOIN materia_profesor mp ON p.id_prof = mp.profesor
+WHERE mp.profesor IS NULL;
+}
+
+8
+{
+SELECT m.nom_mat
+FROM materias m
+LEFT JOIN inscripciones i ON m.cve_mat = i.materia
+WHERE i.materia IS NULL;
+}
+
+9
+{
+SELECT i.*, m.nom_mat
+FROM inscripciones i
+INNER JOIN materias m ON i.materia = m.cve_mat
+WHERE i.fecha BETWEEN '2023-06-01' AND '2023-06-06';
+}
+
+10
+{
+SELECT i.*, m.nom_mat
+FROM inscripciones i
+INNER JOIN materias m ON i.materia = m.cve_mat
+WHERE i.alumno = '20300';
+}
+
+
+
+
+
+
+
+

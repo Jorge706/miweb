@@ -1,0 +1,15 @@
+DELIMITER //
+
+CREATE TRIGGER N_empleados AFTER INSERT ON empleados
+FOR EACH ROW
+BEGIN
+    DECLARE numero_empleados INT;
+    SET numero_empleados = (SELECT COUNT(*) FROM empleados);
+    SET @contador = CONCAT('Numero de empleados ', CAST(numero_empleados AS CHAR));
+END //
+
+DELIMITER ;
+
+
+
+
